@@ -8,6 +8,8 @@ import json,os
 from app import app
 from flask import render_template, request
 from app.forms import UploadForm
+from werkzeug.utils import secure_filename
+
 
 ###
 # Routing for your application.
@@ -19,22 +21,23 @@ from app.forms import UploadForm
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
-        print("HELLO")
         description = request.form['description']
         photo = form.photo.data
-        photo.save(os.path.join(app.config['UPLOAD_FOLDER'],form.photo.label))
+        filename = secure_filename(form.photo.data.filename)        
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
         response = {
-            "filename": form.photo.label,
+            "filename": form.photo.data.filename,
             "description": description,
             "message": "File Upload Successful"
         }
         return json.dumps(response)
     else:
+        print(form_errors(form))
         response = {
             "errors":form_errors(form)
         }
+        print(json.dumps(response))
         return json.dumps(response)
-    return render_template("profile.html", form=form)
 
 
 # This route is now our catch all route for our VueJS single page
